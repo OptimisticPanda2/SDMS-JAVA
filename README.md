@@ -3,7 +3,8 @@
 
 *A Java + JDBC + MySQL based console application developed as a Minor Project for college.*
 
----
+------------------------ Here is the PDF of the Project -------------------------
+[Student Management System Java Project Report.pdf](https://github.com/user-attachments/files/24478108/Student.Management.System.Java.Project.Report.pdf)
 
 ## 🚀 **Overview**
 
