@@ -154,5 +154,26 @@ Department of Computer Science
 ---
 
 ## ⭐ **If you like this project, don’t forget to star the repo!**
+Student Management System Java
+Student Management System Minor Project
+Student Management System Java GitHub
+Java Mini Project for Students
+Student Database Management System Java
+Student Management System Project Report
+ Student Management System in Java
+ Student Management System Minor Project
+ Java Student Management System Project
+ Features of Student Management System
+Technologies Used
+ How to Run the Project
+Project Report
+Java Project Report 
+Final Year Project Report pdf with source code 
+Computer science final year project report pdf with source code
+B.Tech project report pdf with source code 
+MCA project report pdf with source code
+BCA project report pdf with source code 
+java project report pdf with source code
+minor project report pdf with source code
 
 
