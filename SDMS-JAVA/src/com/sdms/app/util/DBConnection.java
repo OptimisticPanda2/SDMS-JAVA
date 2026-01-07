@@ -12,18 +12,19 @@ public class DBConnection {
     private static final String USER = "root";     // MySQL username
     private static final String PASS = "Login@12345";// MySQL password (blank agar koi nahi hai)
 
-    public static Connection getConnection() {
+    public static Connection getConnection() throws ClassNotFoundException,  SQLException {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-
+            System.out.println("Drivers Loaded Successfully");
         } catch (ClassNotFoundException e) {
             System.out.println("Driver NOT loaded: " + e);
         }
 
-        try {
+       try {
             return DriverManager.getConnection(URL, USER, PASS);
         }catch(SQLException e)
         {System.out.println(e.getMessage());}
-        return null;
+        return DriverManager.getConnection(URL, USER, PASS);
+
     }
     }

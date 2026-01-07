@@ -1,133 +1,231 @@
 package com.sdms.app.dao;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
 import com.sdms.app.model.Student;
 import com.sdms.app.util.DBConnection;
 
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-
 public class StudentDAO {
 
-    // --- ADD STUDENT ---
-    public void addStudent(Student s) {
-        try {
-            Connection conn = DBConnection.getConnection();
+    // ================= ADD STUDENT =================
+    public boolean addStudent(Student s) {
 
-            String query = "INSERT INTO students (roll_no, first_name, last_name) VALUES (?, ?, ?)";
+        // Auto-generate roll number
+        s.setRollNo(generateRollNo());
 
-            PreparedStatement ps = conn.prepareStatement(query);
-            ps.setString(1, s.getRollNo());
-            ps.setString(2, s.getFirstName());
-            ps.setString(3, s.getLastName());
+        String sql =
+                "INSERT INTO student " +
+                        "(name, roll_no, course, course_duration, join_date, leave_date, status) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-            ps.executeUpdate();
-            System.out.println("Student Added!");
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+
+            ps.setString(1, s.getName());
+            ps.setString(2, s.getRollNo());
+            ps.setString(3, s.getCourse());
+            ps.setInt(4, s.getCourseDuration());
+            ps.setString(5, s.getJoinDate());
+            ps.setString(6, s.getLeaveDate());
+            ps.setString(7, s.getStatus());
+
+            int rows = ps.executeUpdate();
+            System.out.println("Generated Roll Number: " + s.getRollNo());
+            return rows > 0;
+
         } catch (Exception e) {
-            System.out.println("Error Add: " + e.getMessage());
+            System.out.println("Add Student Error: " + e.getMessage());
+            return false;
         }
     }
 
-    // --- DISPLAY ALL STUDENTS ---
-    public List<Student> getAllStudents() {
-        List<Student> list = new ArrayList<>();
+    // ================= VIEW ALL STUDENTS =================
+    public void viewAllStudents() {
 
-        try {
-            Connection conn = DBConnection.getConnection();
-            String query = "SELECT * FROM students";
+        String sql = "SELECT * FROM student";
 
-            PreparedStatement ps = conn.prepareStatement(query);
-            ResultSet rs = ps.executeQuery();
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            System.out.println("\nROLL NO | NAME | COURSE | DURATION | STATUS");
 
             while (rs.next()) {
-                Student s = new Student();
-                s.setStudentId(rs.getInt("student_id"));
-                s.setRollNo(rs.getString("roll_no"));
-                s.setFirstName(rs.getString("first_name"));
-                s.setLastName(rs.getString("last_name"));
-
-                list.add(s);
+                System.out.println(
+                        rs.getString("roll_no") + " | " +
+                                rs.getString("name") + " | " +
+                                rs.getString("course") + " | " +
+                                rs.getInt("course_duration") + " | " +
+                                rs.getString("status")
+                );
             }
 
         } catch (Exception e) {
-            System.out.println("Error Display: " + e.getMessage());
+            System.out.println("View All Error: " + e.getMessage());
         }
-
-        return list;
     }
 
+    // ================= VIEW ACTIVE STUDENTS =================
+    public void viewActiveStudents() {
 
-    // --- SEARCH STUDENT BY ROLL NO ---
-    public Student searchStudent(String rollNo) {
-        Student s = null;
+        String sql = "SELECT * FROM student WHERE status='ACTIVE'";
 
-        try {
-            Connection conn = DBConnection.getConnection();
-            String query = "SELECT * FROM students WHERE roll_no = ?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
 
-            PreparedStatement ps = conn.prepareStatement(query);
+            System.out.println("\n--- ACTIVE STUDENTS ---");
+
+            while (rs.next()) {
+                System.out.println(
+                        rs.getString("roll_no") + " | " +
+                                rs.getString("name") + " | " +
+                                rs.getString("course")
+                );
+            }
+
+        } catch (Exception e) {
+            System.out.println("Active Students Error: " + e.getMessage());
+        }
+    }
+
+    // ================= SEARCH STUDENT =================
+    public void searchStudent(String rollNo) {
+
+        String sql = "SELECT * FROM student WHERE roll_no=?";
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
             ps.setString(1, rollNo);
-
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                s = new Student();
-                s.setStudentId(rs.getInt("student_id"));
-                s.setRollNo(rs.getString("roll_no"));
-                s.setFirstName(rs.getString("first_name"));
-                s.setLastName(rs.getString("last_name"));
+                System.out.println("\nStudent Details:");
+                System.out.println("Name      : " + rs.getString("name"));
+                System.out.println("Course    : " + rs.getString("course"));
+                System.out.println("Duration  : " + rs.getInt("course_duration"));
+                System.out.println("Join Date : " + rs.getString("join_date"));
+                System.out.println("Leave Date: " + rs.getString("leave_date"));
+                System.out.println("Status    : " + rs.getString("status"));
+            } else {
+                System.out.println("No student found with this roll number.");
             }
 
         } catch (Exception e) {
-            System.out.println("Error Search: " + e.getMessage());
+            System.out.println("Search Error: " + e.getMessage());
         }
-
-        return s;
     }
 
+    // ================= UPDATE COURSE =================
+    public void updateCourse(String rollNo, String newCourse) {
 
-    // --- UPDATE STUDENT ---
-    public void updateStudent(Student s) {
-        try {
-            Connection conn = DBConnection.getConnection();
-            String query = "UPDATE students SET first_name=?, last_name=? WHERE roll_no=?";
+        String sql = "UPDATE student SET course=? WHERE roll_no=?";
 
-            PreparedStatement ps = conn.prepareStatement(query);
-            ps.setString(1, s.getFirstName());
-            ps.setString(2, s.getLastName());
-            ps.setString(3, s.getRollNo());
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
 
-            int rows = ps.executeUpdate();
+            ps.setString(1, newCourse);
+            ps.setString(2, rollNo);
 
-            if (rows > 0)
-                System.out.println("Student Updated!");
-            else
-                System.out.println("No record found!");
+            if (ps.executeUpdate() > 0) {
+                System.out.println("Course updated successfully.");
+            } else {
+                System.out.println("Roll number not found.");
+            }
 
         } catch (Exception e) {
-            System.out.println("Error Update: " + e.getMessage());
+            System.out.println("Update Course Error: " + e.getMessage());
         }
     }
 
+    // ================= UPDATE COURSE DURATION =================
+    public void updateDuration(String rollNo, int duration) {
 
-    // --- DELETE STUDENT ---
-    public void deleteStudent(String rollNo) {
-        try {
-            Connection conn = DBConnection.getConnection();
-            String query = "DELETE FROM students WHERE roll_no=?";
+        String sql = "UPDATE student SET course_duration=? WHERE roll_no=?";
 
-            PreparedStatement ps = conn.prepareStatement(query);
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, duration);
+            ps.setString(2, rollNo);
+
+            if (ps.executeUpdate() > 0) {
+                System.out.println("Course duration updated successfully.");
+            } else {
+                System.out.println("Roll number not found.");
+            }
+
+        } catch (Exception e) {
+            System.out.println("Update Duration Error: " + e.getMessage());
+        }
+    }
+
+    // ================= MARK STUDENT AS LEFT =================
+    public void markStudentLeft(String rollNo, String leaveDate) {
+
+        String sql =
+                "UPDATE student SET status='LEFT', leave_date=? WHERE roll_no=?";
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, leaveDate);
+            ps.setString(2, rollNo);
+
+            if (ps.executeUpdate() > 0) {
+                System.out.println("Student marked as LEFT.");
+            } else {
+                System.out.println("Roll number not found.");
+            }
+
+        } catch (Exception e) {
+            System.out.println("Mark Left Error: " + e.getMessage());
+        }
+    }
+
+    // ================= DELETE STUDENT =================
+    public boolean deleteStudent(String rollNo) {
+
+        String sql = "DELETE FROM student WHERE roll_no=?";
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
             ps.setString(1, rollNo);
-
-            int rows = ps.executeUpdate();
-
-            if (rows > 0)
-                System.out.println("Student Deleted!");
-            else
-                System.out.println("No record found!");
+            return ps.executeUpdate() > 0;
 
         } catch (Exception e) {
-            System.out.println("Error Delete: " + e.getMessage());
+            System.out.println("Delete Error: " + e.getMessage());
+            return false;
         }
+    }
+
+    // ================= ROLL NUMBER GENERATOR =================
+    private String generateRollNo() {
+
+        String year = java.time.Year.now().toString();
+        String prefix = "SDMS-" + year + "-";
+        String sql = "SELECT COUNT(*) FROM student WHERE roll_no LIKE ?";
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, prefix + "%");
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                int count = rs.getInt(1) + 1;
+                return prefix + String.format("%03d", count);
+            }
+
+        } catch (Exception e) {
+            System.out.println("Roll Generator Error: " + e.getMessage());
+        }
+
+        return prefix + "001";
     }
 }
